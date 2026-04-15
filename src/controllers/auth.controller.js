@@ -1,5 +1,7 @@
 const userModel = require("../models/user.models");
 const authRouter = require("../routes/auth.routes");
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
 
 
 /***@route Post
@@ -16,12 +18,36 @@ async function registerUserController(req, res) {
 
     const isUserAlreadyExist = await userModel.findOne({ $or: [{ email }, { Username }] })
     if (isUserAlreadyExist) {
-
         return res.status(400).json({ message: "User already exists with this email or username" })
     }
 
-}
+    const hash = await bcrypt.hash(password, 10)
 
+    const newUser = new userModel({
+        username: Username,   // ⚠️ yaha bhi fix kiya
+        email,
+        password: hash
+    })
+
+    await newUser.save()   // ⚠️ ye missing tha
+
+    const token = jwt.sign(
+        { id: newUser._id, username: newUser.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+    )
+
+    res.cookie("token", token)
+
+    res.status(201).json({
+        message: "User registered successfully",
+        user: {
+            id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+        }
+    })
+}
 
 module.exports = {
     registerUserController
