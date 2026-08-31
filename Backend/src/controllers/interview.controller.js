@@ -51,6 +51,10 @@ async function getInterviewReportController(req, res) {
         interviewReport
     })
 }
+/**
+ * 
+ * @description Controller to get all interview reports logged in user.
+ */
 
 async function getInterviewReportController(req, res) {
     const interviewReports = await interviewReportModel.find({user: req.user.id}).sort({createdAt: -1})
